@@ -1,0 +1,15 @@
+﻿<Properties StartupConfiguration="{E1BAB358-ECE8-9022-EF6D-1460A4705FBE}|">
+  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="Unity.Editor" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/WaterScript.cs">
+    <Files>
+      <File FileName="Assets/TerrainScript.cs" Line="153" Column="1" />
+      <File FileName="Assets/WaterScript.cs" Line="11" Column="5" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MultiItemStartupConfigurations />
+</Properties>
