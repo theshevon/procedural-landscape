@@ -26,6 +26,7 @@ Shader "Unlit/VertexColorShader"
 			};
 
 			// Implementation of the vertex shader
+            // Builds the object
 			vertOut vert(vertIn v)
 			{
 				vertOut o;
@@ -35,6 +36,7 @@ Shader "Unlit/VertexColorShader"
 			}
 			
 			// Implementation of the fragment shader
+            // Colours in the object
 			fixed4 frag(vertOut v) : SV_Target
 			{
 				return v.color;

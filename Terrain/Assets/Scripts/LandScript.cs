@@ -5,7 +5,6 @@ using UnityEngine;
 public class LandScript : MonoBehaviour
 {
     public Material material;
-
     public static float sizeOfTerrain = 64;
     public static int noOfDivisions = 128;
     public static float maximumHeight = 20;
@@ -20,7 +19,7 @@ public class LandScript : MonoBehaviour
         terrainMesh.mesh = generateTerrain();
 
         MeshRenderer renderer = gameObject.AddComponent<MeshRenderer>();
-        renderer.material = material;
+        renderer.material.shader = Shader.Find("Unlit/VertexColorShader");
     }
 
     private Mesh generateTerrain()
@@ -32,7 +31,7 @@ public class LandScript : MonoBehaviour
         //There will be n+1 vertices for there to be n divisions
         Vector3[] vertices = new Vector3[(noOfDivisions + 1) * (noOfDivisions + 1)];
         Vector2[] UVs = new Vector2[vertices.Length];
-        //Color[] colors = new Color[vertices.Length];
+        Color[] colors = new Color[vertices.Length];
 
         int[] triangles = new int[noOfDivisions * noOfDivisions * 6];
 
@@ -69,10 +68,10 @@ public class LandScript : MonoBehaviour
         }
 
         //Set values for corners
-        vertices[0].y = Random.Range(-maximumHeight, maximumHeight);
-        vertices[noOfDivisions].y = Random.Range(-maximumHeight, maximumHeight);
-        vertices[vertices.Length - 1].y = Random.Range(-maximumHeight, maximumHeight);
-        vertices[vertices.Length - 1 - noOfDivisions].y = Random.Range(-maximumHeight, maximumHeight);
+        vertices[0].y = Random.Range(0, maximumHeight);
+        vertices[noOfDivisions].y = Random.Range(-maximumHeight, 0);
+        vertices[vertices.Length - 1].y = Random.Range(0, maximumHeight);
+        vertices[vertices.Length - 1 - noOfDivisions].y = Random.Range(-maximumHeight, 0);
 
 
         int noOfSteps = (int)Mathf.Log(noOfDivisions, 2);
@@ -108,18 +107,41 @@ public class LandScript : MonoBehaviour
         }
 
         //Set colors
-        //for (int i = 0; i < noOfDivisions; i++)
-        //{
-        //    for (int j = 0; j < noOfDivisions; j++)
-        //    {
-        //        index = i * (noOfDivisions + 1) + j;
+        for (int i = 0; i < noOfDivisions; i++){
+            for (int j = 0; j < noOfDivisions; j++)
+            {
+                index = i * (noOfDivisions + 1) + j;
 
-        //        colors[index] = Color.HSVToRGB(Mathf.Abs(vertices[index].y/maximumHeight), 1.0f, 1.0f);
-        //    }
-        //}
+                float vertexHeight = vertices[index].y;
+                if (vertexHeight > maximumHeight - getHeightOfLand() / 8){
+                    colors[index] = new Color32(105, 74, 16, 1);
+                }
+                else if (vertexHeight > maximumHeight - getHeightOfLand() / 6){
+                    if (Random.Range(0, 10) >= 5){
+                        colors[index] = new Color32(105, 74, 16, 1);
+                    } else{
+                        colors[index] = new Color32(0, 153, 76, 1);
+                    }
+                }
+                else if (vertexHeight > maximumHeight - getHeightOfLand() / 2) { 
+                    colors[index] = new Color32(0, 153, 76, 1);
+                }else if (vertexHeight > 0){
+                    if (Random.Range(0, 10) >= 5)
+                    {
+                        colors[index] = new Color32(0, 153, 76, 1);
+                    }
+                    else
+                    {
+                        colors[index] = new Color32(255, 214, 159, 1);
+                    }
+                }else{
+                    colors[index] = new Color32(255, 214, 159, 1);
+                }
+            }
+        }
 
         mesh.vertices = vertices;
-        //mesh.colors = colors;
+        mesh.colors = colors;
         mesh.uv = UVs;
         mesh.triangles = triangles;
 
