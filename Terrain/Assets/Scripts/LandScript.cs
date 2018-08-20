@@ -19,7 +19,7 @@ public class LandScript : MonoBehaviour
         terrainMesh.mesh = generateTerrain();
 
         MeshRenderer renderer = gameObject.AddComponent<MeshRenderer>();
-        renderer.material.shader = Shader.Find("Unlit/VertexColorShader");
+        renderer.material.shader = Shader.Find("Unlit/LandShader");
     }
 
     private Mesh generateTerrain()
@@ -47,6 +47,7 @@ public class LandScript : MonoBehaviour
                 //Set vertices
                 vertices[index] = new Vector3(-(sizeOfTerrain * 0.5f) + (j * sizeOfDivision), 0.0f, (sizeOfTerrain * 0.5f) - (i * sizeOfDivision));
                 UVs[index] = new Vector2((float)i / noOfDivisions, (float)j / noOfDivisions);
+                colors[index] = Color.green;
             }
         }
 
@@ -107,16 +108,29 @@ public class LandScript : MonoBehaviour
         }
 
         //Set colors
-        for (int i = 0; i < noOfDivisions; i++){
-            for (int j = 0; j < noOfDivisions; j++)
+        for (int i = 0; i < noOfDivisions+1; i++){
+            for (int j = 0; j < noOfDivisions+1; j++)
             {
                 index = i * (noOfDivisions + 1) + j;
 
                 float vertexHeight = vertices[index].y;
-                if (vertexHeight > maximumHeight - getHeightOfLand() / 8){
-                    colors[index] = new Color32(105, 74, 16, 1);
+                if (vertexHeight > maximumHeight - getHeightOfLand() / 12){
+                    colors[index] = new Color32(255, 255, 255, 1);
+                }
+                else if (vertexHeight > maximumHeight - getHeightOfLand() / 9){
+                    if (Random.Range(0, 10) >= 5)
+                    {
+                        colors[index] = new Color32(255, 255, 255, 1);
+                    }
+                    else
+                    {
+                        colors[index] = new Color32(105, 74, 16, 1);
+                    }
                 }
                 else if (vertexHeight > maximumHeight - getHeightOfLand() / 6){
+                    colors[index] = new Color32(105, 74, 16, 1);
+                }
+                else if (vertexHeight > maximumHeight - getHeightOfLand() / 4){
                     if (Random.Range(0, 10) >= 5){
                         colors[index] = new Color32(105, 74, 16, 1);
                     } else{
