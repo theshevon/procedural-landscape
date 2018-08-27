@@ -153,7 +153,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cc8d6965dd14a4e98bf374c50a994fb7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  material: {fileID: 2100000, guid: 172f15d3bb14d4f148f6a593e5f1794c, type: 2}
+  material: {fileID: 2100000, guid: af5c4a5511e4a448db0723cdfe5011f6, type: 2}
 --- !u!1 &533145025
 GameObject:
   m_ObjectHideFlags: 0
@@ -194,7 +194,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3c860058b2d964f71bf68962cc2ca7d0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  material: {fileID: 2100000, guid: 696be4cf70fce42248928018612097ae, type: 2}
+  sizeOfTerrain: 64
+  noOfDivisions: 128
+  maximumHeight: 20
+  material: {fileID: 2100000, guid: 2c6f5ab601d22834883d3c7e18f8be41, type: 2}
 --- !u!1 &848714738
 GameObject:
   m_ObjectHideFlags: 0
@@ -235,6 +238,7 @@ GameObject:
   - component: {fileID: 1275227405}
   - component: {fileID: 1275227404}
   - component: {fileID: 1275227403}
+  - component: {fileID: 1275227406}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -257,8 +261,8 @@ Camera:
   m_GameObject: {fileID: 1275227402}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_projectionMatrixMode: 1
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
@@ -302,6 +306,19 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1275227406
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1275227402}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88166194c86674e18bb8c5075c98c9f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  MouseSensitivity: 10
+  CameraSpeed: 10
 --- !u!1 &1437077582
 GameObject:
   m_ObjectHideFlags: 0

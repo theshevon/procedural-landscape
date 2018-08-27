@@ -4,13 +4,14 @@ using UnityEngine;
 
 public class LandScript : MonoBehaviour
 {
-    public Material material;
-    public static float sizeOfTerrain = 64;
-    public static int noOfDivisions = 128;
-    public static float maximumHeight = 20;
+    public float sizeOfTerrain = 64;
+    public int noOfDivisions = 128;
+    public float maximumHeight = 20;
 
-    private float minHeightOfLand = -maximumHeight;
-    private float maxHeightOfLand = maximumHeight;
+    private float minHeightOfLand = 20;
+    private float maxHeightOfLand = -20;
+
+    public Material material;
 
     // Use this for initialization
     void Start()
@@ -18,8 +19,11 @@ public class LandScript : MonoBehaviour
         MeshFilter terrainMesh = gameObject.AddComponent<MeshFilter>();
         terrainMesh.mesh = generateTerrain();
 
-        MeshRenderer renderer = gameObject.AddComponent<MeshRenderer>();
-        renderer.material.shader = Shader.Find("Unlit/LandShader");
+        MeshRenderer landRenderer = gameObject.AddComponent<MeshRenderer>();
+        landRenderer.material = material;
+
+        gameObject.AddComponent<MeshCollider>();
+
     }
 
     private Mesh generateTerrain()
@@ -108,51 +112,51 @@ public class LandScript : MonoBehaviour
         }
 
         //Set colors
-        for (int i = 0; i < noOfDivisions+1; i++){
-            for (int j = 0; j < noOfDivisions+1; j++)
-            {
-                index = i * (noOfDivisions + 1) + j;
+        //for (int i = 0; i < noOfDivisions+1; i++){
+        //    for (int j = 0; j < noOfDivisions+1; j++)
+        //    {
+        //        index = i * (noOfDivisions + 1) + j;
 
-                float vertexHeight = vertices[index].y;
-                if (vertexHeight > maximumHeight - getHeightOfLand() / 12){
-                    colors[index] = new Color32(255, 255, 255, 1);
-                }
-                else if (vertexHeight > maximumHeight - getHeightOfLand() / 9){
-                    if (Random.Range(0, 10) >= 5)
-                    {
-                        colors[index] = new Color32(255, 255, 255, 1);
-                    }
-                    else
-                    {
-                        colors[index] = new Color32(105, 74, 16, 1);
-                    }
-                }
-                else if (vertexHeight > maximumHeight - getHeightOfLand() / 6){
-                    colors[index] = new Color32(105, 74, 16, 1);
-                }
-                else if (vertexHeight > maximumHeight - getHeightOfLand() / 4){
-                    if (Random.Range(0, 10) >= 5){
-                        colors[index] = new Color32(105, 74, 16, 1);
-                    } else{
-                        colors[index] = new Color32(0, 153, 76, 1);
-                    }
-                }
-                else if (vertexHeight > maximumHeight - getHeightOfLand() / 2) { 
-                    colors[index] = new Color32(0, 153, 76, 1);
-                }else if (vertexHeight > 0){
-                    if (Random.Range(0, 10) >= 5)
-                    {
-                        colors[index] = new Color32(0, 153, 76, 1);
-                    }
-                    else
-                    {
-                        colors[index] = new Color32(255, 214, 159, 1);
-                    }
-                }else{
-                    colors[index] = new Color32(255, 214, 159, 1);
-                }
-            }
-        }
+        //        float vertexHeight = vertices[index].y;
+        //        if (vertexHeight > maximumHeight - getHeightOfLand() / 12){
+        //            colors[index] = new Color32(255, 255, 255, 1);
+        //        }
+        //        else if (vertexHeight > maximumHeight - getHeightOfLand() / 9){
+        //            if (Random.Range(0, 10) >= 5)
+        //            {
+        //                colors[index] = new Color32(255, 255, 255, 1);
+        //            }
+        //            else
+        //            {
+        //                colors[index] = new Color32(105, 74, 16, 1);
+        //            }
+        //        }
+        //        else if (vertexHeight > maximumHeight - getHeightOfLand() / 6){
+        //            colors[index] = new Color32(105, 74, 16, 1);
+        //        }
+        //        else if (vertexHeight > maximumHeight - getHeightOfLand() / 4){
+        //            if (Random.Range(0, 10) >= 5){
+        //                colors[index] = new Color32(105, 74, 16, 1);
+        //            } else{
+        //                colors[index] = new Color32(0, 153, 76, 1);
+        //            }
+        //        }
+        //        else if (vertexHeight > maximumHeight - getHeightOfLand() / 2) { 
+        //            colors[index] = new Color32(0, 153, 76, 1);
+        //        }else if (vertexHeight > 0){
+        //            if (Random.Range(0, 10) >= 5)
+        //            {
+        //                colors[index] = new Color32(0, 153, 76, 1);
+        //            }
+        //            else
+        //            {
+        //                colors[index] = new Color32(255, 214, 159, 1);
+        //            }
+        //        }else{
+        //            colors[index] = new Color32(255, 214, 159, 1);
+        //        }
+        //    }
+        //}
 
         mesh.vertices = vertices;
         mesh.colors = colors;
@@ -206,12 +210,14 @@ public class LandScript : MonoBehaviour
         }
     }
 
+
     public float getMinHeightOfLand()
     {
         return minHeightOfLand;
     }
 
-    public float getHeightOfLand()
+ 
+    public float getTotalHeightOfLand()
     {
         return maxHeightOfLand - minHeightOfLand;
     }
