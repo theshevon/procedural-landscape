@@ -21,7 +21,7 @@ public class CameraScript : MonoBehaviour {
     // Use this for initialization
     void Start () {
         // get size of terrain from TerrainScript
-        sizeOfTerrain = GameObject.Find("Land").GetComponent<LandScript>().sizeOfTerrain;
+        sizeOfTerrain = 64;
         // set initial camera rotation
         this.transform.localRotation = Quaternion.Euler(vertical, horizontal, 0.0f);
         // set initial camera position

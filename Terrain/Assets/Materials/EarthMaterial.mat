@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: EarthMaterial
-  m_Shader: {fileID: 4800000, guid: 4ba0eacf7a9264088ba07e2d84f53d40, type: 3}
+  m_Shader: {fileID: 4800000, guid: ed0204ae2f9a84c0fa292227bd1a97b0, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -24,7 +24,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _BumpTex:
         m_Texture: {fileID: 2800000, guid: 0c3232df383d7984ab0e87bf7c42aadb, type: 3}
-        m_Scale: {x: 1, y: 1}
+        m_Scale: {x: 3, y: 3}
         m_Offset: {x: 0, y: 0}
     - _DetailAlbedoMap:
         m_Texture: {fileID: 0}
@@ -44,7 +44,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 2800000, guid: a51044dfe95257548b466bc35528b878, type: 3}
-        m_Scale: {x: 1, y: 1}
+        m_Scale: {x: 3, y: 3}
         m_Offset: {x: 0, y: 0}
     - _MainTex1:
         m_Texture: {fileID: 2800000, guid: eea7e17e1e77e4f379a606c47314e659, type: 3}
@@ -69,6 +69,7 @@ Material:
     m_Floats:
     - _Amount: 0.1
     - _Amplitude: 2.73
+    - _BlendFct: 0
     - _BumpScale: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
@@ -91,3 +92,5 @@ Material:
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _PointLightColor: {r: 0, g: 0, b: 0, a: 1}
+    - _PointLightPosition: {r: 0, g: 0, b: 0, a: 1}

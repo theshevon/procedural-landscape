@@ -1,90 +1,124 @@
-﻿using System.Collections;
+﻿// Original code for Procedural Terrain Generation using Diamond Square 
+// Algorithm dwritten by Ather Omar:
+// (https://www.youtube.com/watch?v=1HV8GbFnCik&t=915s)
+//
+// Adapted and modified for COMP30019 Project 01 by Shevon Mendis - 868551
+
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LandScript : MonoBehaviour
-{
-    public float sizeOfTerrain = 64;
-    public int noOfDivisions = 128;
-    public float maximumHeight = 20;
-
-    private float minHeightOfLand = 20;
-    private float maxHeightOfLand = -20;
+public class LandScript : MonoBehaviour{
 
     public Material material;
+    public PointLight pointLight;
 
-    // Use this for initialization
+    // the terrain must have width and height of the order 2^n + 1
+    // hence both the size of the terrain and no of divisions must be of the 
+    // order 2^n
+    private const float sizeOfTerrain = 64; 
+    private const int noOfDivisions = 128; 
+
+    private const float maximumHeight = 20;
+    private float maxY = 20;
+    private float minY = -20;
+
+    MeshRenderer landRenderer;
+
     void Start()
     {
         MeshFilter terrainMesh = gameObject.AddComponent<MeshFilter>();
-        terrainMesh.mesh = generateTerrain();
+        terrainMesh.mesh = GenerateTerrain();
 
-        MeshRenderer landRenderer = gameObject.AddComponent<MeshRenderer>();
+        landRenderer = gameObject.AddComponent<MeshRenderer>();
         landRenderer.material = material;
 
+        // add a mesh collider for collision detection
         gameObject.AddComponent<MeshCollider>();
-
     }
 
-    private Mesh generateTerrain()
+    void Update()
+    {
+        // Pass updated light positions to shader
+        landRenderer.material.SetColor("_PointLightColor", this.pointLight.color);
+        landRenderer.material.SetVector("_PointLightPosition", this.pointLight.GetWorldPosition());
+    }
+
+    private Mesh GenerateTerrain()
     {
 
         Mesh mesh = new Mesh();
         mesh.name = "Terrain";
 
-        //There will be n+1 vertices for there to be n divisions
+        // the size of the vertices array is (noOfDivisions + 1)^2 to satisfy
+        // the (2^n + 1) height-width condition needed to run the diamond square algorithm
         Vector3[] vertices = new Vector3[(noOfDivisions + 1) * (noOfDivisions + 1)];
+
         Vector2[] UVs = new Vector2[vertices.Length];
         Color[] colors = new Color[vertices.Length];
-
         int[] triangles = new int[noOfDivisions * noOfDivisions * 6];
 
         float sizeOfDivision = sizeOfTerrain / noOfDivisions;
-
         int index;
+
+        // Initially, create a plane
         for (int i = 0; i < noOfDivisions + 1; i++)
         {
             for (int j = 0; j < noOfDivisions + 1; j++)
             {
+
                 index = i * (noOfDivisions + 1) + j;
 
-                //Set vertices
+                // set vertex
                 vertices[index] = new Vector3(-(sizeOfTerrain * 0.5f) + (j * sizeOfDivision), 0.0f, (sizeOfTerrain * 0.5f) - (i * sizeOfDivision));
-                UVs[index] = new Vector2((float)i / noOfDivisions, (float)j / noOfDivisions);
+
+                // set uv
+                UVs[index] = new Vector2((float)i / noOfDivisions,
+                                         (float)j / noOfDivisions);
+
+                // set colour
                 colors[index] = Color.green;
             }
         }
 
-
-        //Make triangles
+        // make triangles out of the vertices
         index = 0;
         for (int i = 0; i < noOfDivisions; i++)
         {
             for (int j = 0; j < noOfDivisions; j++)
             {
+
+                // left side triangle of sqaure unit in plane
                 triangles[index++] = i * (noOfDivisions + 1) + j;
                 triangles[index++] = (i + 1) * (noOfDivisions + 1) + j + 1;
                 triangles[index++] = (i + 1) * (noOfDivisions + 1) + j;
 
+                // right side triangle of square in plane
                 triangles[index++] = i * (noOfDivisions + 1) + j;
                 triangles[index++] = i * (noOfDivisions + 1) + j + 1;
                 triangles[index++] = (i + 1) * (noOfDivisions + 1) + j + 1;
             }
         }
 
-        //Set values for corners
+        // set initial values for the corners of the plane
         vertices[0].y = Random.Range(0, maximumHeight);
         vertices[noOfDivisions].y = Random.Range(-maximumHeight, 0);
         vertices[vertices.Length - 1].y = Random.Range(0, maximumHeight);
         vertices[vertices.Length - 1 - noOfDivisions].y = Random.Range(-maximumHeight, 0);
 
+        // for each square in the array, there will be a diamond and a square 
+        // step. Hence the total number of times the diamon-square algorithm
+        // will run == max number of squares in the graph, which is equal
+        // to log2(no of divisions)
+        int noOfRuns = (int)Mathf.Log(noOfDivisions, 2);
 
-        int noOfSteps = (int)Mathf.Log(noOfDivisions, 2);
+        // initially there is only one square, with side length == no of divisions
         int noOfSquares = 1;
         int squareSize = noOfDivisions;
         float height = maximumHeight;
 
-        for (int i = 0; i < noOfSteps; i++)
+        // run the diamond square algorithm for each diamond and square in the array
+        for (int i = 0; i < noOfRuns; i++)
         {
 
             int row = 0;
@@ -94,70 +128,45 @@ public class LandScript : MonoBehaviour
                 int col = 0;
                 for (int k = 0; k < noOfSquares; k++)
                 {
-                    runDiamondSquare(vertices, row, col, squareSize, height);
+                    RunDiamondSquare(vertices, row, col, squareSize, height);
                     col += squareSize;
                 }
 
                 row += squareSize;
             }
 
+            // With each run, the number of sqaures doubles as the size
+            // of the current square halves
             noOfSquares *= 2;
             squareSize /= 2;
+
+            // vary the height offset 
             height *= 0.5f;
         }
 
+        // update height details about the terrain
         for (int i = 0; i < noOfDivisions; i++)
         {
-            updateMinAndMaxHeight(vertices[i].y);
+            UpdateMinAndMaxHeight(vertices[i].y);
         }
 
-        //Set colors
-        //for (int i = 0; i < noOfDivisions+1; i++){
-        //    for (int j = 0; j < noOfDivisions+1; j++)
-        //    {
-        //        index = i * (noOfDivisions + 1) + j;
+        // ensure that at least a quarter of the land generated will be below water
+        float quarterHeight = GetTotalHeightOfLand()*0.25f;
+        if (minY > -quarterHeight){
+            float heightToMove = -(minY + quarterHeight);
+            OffsetVertices(vertices, heightToMove);
+        }
+        else if (maxY < quarterHeight){
+            float heightToMove = minY - quarterHeight;
+            OffsetVertices(vertices, heightToMove);
+        }
 
-        //        float vertexHeight = vertices[index].y;
-        //        if (vertexHeight > maximumHeight - getHeightOfLand() / 12){
-        //            colors[index] = new Color32(255, 255, 255, 1);
-        //        }
-        //        else if (vertexHeight > maximumHeight - getHeightOfLand() / 9){
-        //            if (Random.Range(0, 10) >= 5)
-        //            {
-        //                colors[index] = new Color32(255, 255, 255, 1);
-        //            }
-        //            else
-        //            {
-        //                colors[index] = new Color32(105, 74, 16, 1);
-        //            }
-        //        }
-        //        else if (vertexHeight > maximumHeight - getHeightOfLand() / 6){
-        //            colors[index] = new Color32(105, 74, 16, 1);
-        //        }
-        //        else if (vertexHeight > maximumHeight - getHeightOfLand() / 4){
-        //            if (Random.Range(0, 10) >= 5){
-        //                colors[index] = new Color32(105, 74, 16, 1);
-        //            } else{
-        //                colors[index] = new Color32(0, 153, 76, 1);
-        //            }
-        //        }
-        //        else if (vertexHeight > maximumHeight - getHeightOfLand() / 2) { 
-        //            colors[index] = new Color32(0, 153, 76, 1);
-        //        }else if (vertexHeight > 0){
-        //            if (Random.Range(0, 10) >= 5)
-        //            {
-        //                colors[index] = new Color32(0, 153, 76, 1);
-        //            }
-        //            else
-        //            {
-        //                colors[index] = new Color32(255, 214, 159, 1);
-        //            }
-        //        }else{
-        //            colors[index] = new Color32(255, 214, 159, 1);
-        //        }
-        //    }
-        //}
+        // set colors
+        for (int i=0; i < colors.Length; i++){
+            colors[i] = vertices[i].y < 0 ? new Color32(255, 214, 159, 1) : new Color32(105, 74, 16, 1);
+        }
 
+        // store the arrays in their mesh counter-parts
         mesh.vertices = vertices;
         mesh.colors = colors;
         mesh.uv = UVs;
@@ -170,55 +179,49 @@ public class LandScript : MonoBehaviour
 
     }
 
-    private void runDiamondSquare(Vector3[] vertices, int row, int col, int squareSize, float offset)
+    private void RunDiamondSquare(Vector3[] vertices, int row, int col, int squareSize, float offset)
     {
 
-        //Find square corners
         int halfSize = squareSize / 2;
+
+        // find the corners of the square
         int topLeft = row * (noOfDivisions + 1) + col;
         int topRight = topLeft + squareSize;
         int bottomLeft = (row + squareSize) * (noOfDivisions + 1) + col;
         int bottomRight = bottomLeft + squareSize;
 
-        /* Perform diamond step - Get midpoint and set its height to be the average of the heights of the square corners plus a random value */
+        // perform the diamond step - get the midpoint of the square and set its height to be the average of the square's corner vertex heights plus a random value
         int midPoint = (row + halfSize) * (noOfDivisions + 1) + col + halfSize;
         vertices[midPoint].y = (vertices[topLeft].y + vertices[bottomLeft].y + vertices[topRight].y + vertices[bottomRight].y) * 0.25f + Random.Range(-offset, offset);
 
-        /* Perform square step - Find midpoints of the square's edges and set their heights to be the average of the adjacent corners and midpoint plus a random
-        value*/
-
-        //TopMid
-        vertices[topLeft + halfSize].y = (vertices[midPoint].y + vertices[topLeft].y + vertices[topRight].y) / 3 + Random.Range(-offset, offset);
-        //LeftMid
+        // perform a diamond step - set the midpoints of each of the 4 diamonds to be the average of their corner vertex heights plus a random value
+        vertices[topLeft + halfSize].y = (vertices[midPoint].y + vertices[topLeft].y + vertices[topRight].y) / 3 + Random.Range(-offset, offset); 
         vertices[midPoint - halfSize].y = (vertices[midPoint].y + vertices[topLeft].y + vertices[bottomLeft].y) / 3 + Random.Range(-offset, offset);
-        //RightMid
         vertices[midPoint + halfSize].y = (vertices[midPoint].y + vertices[topRight].y + vertices[bottomRight].y) / 3 + Random.Range(-offset, offset);
-        //BottomMid
         vertices[bottomLeft + halfSize].y = (vertices[midPoint].y + vertices[bottomLeft].y + vertices[bottomRight].y) / 3 + Random.Range(-offset, offset);
-
     }
 
-    private void updateMinAndMaxHeight(float y)
+
+    /// updates the values of the maximum and minimum vertex heights generated
+    private void UpdateMinAndMaxHeight(float y)
     {
-        if (y < minHeightOfLand)
-        {
-            minHeightOfLand = y;
+        if (y < minY){
+           minY = y;
         }
-        else if (y > maxHeightOfLand)
-        {
-            maxHeightOfLand = y;
+        else if (y >maxY){
+           maxY = y;
         }
     }
 
-
-    public float getMinHeightOfLand()
-    {
-        return minHeightOfLand;
+    /// returns the actual height of the terrain generated
+    private float GetTotalHeightOfLand(){
+        return maxY - minY;
     }
 
- 
-    public float getTotalHeightOfLand()
-    {
-        return maxHeightOfLand - minHeightOfLand;
+    /// moves all the vertices vertically up or down as required
+    private void OffsetVertices(Vector3[] vertices, float height){
+        for (int i = 0; i < vertices.Length; i++){
+            vertices[i] += new Vector3(0, height, 0);
+        }
     }
 }
