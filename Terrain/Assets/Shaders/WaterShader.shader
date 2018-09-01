@@ -12,8 +12,9 @@ Shader "Unlit/WaterShader"
         _Amplitude("Amplitude", Range(0,5)) = 0.82
         _Frequency("Frequency", Range(0,5)) = 2.73
         _Speed("Speed", Range(0,5)) = 2.24
-        _Glossiness("Glossiness", Range(0,100)) = 50
+        _Glossiness("Glossiness", Range(0,500)) = 500
     }
+    
     SubShader
     {
         
@@ -24,18 +25,11 @@ Shader "Unlit/WaterShader"
         
         Pass
         {
-            
-            Tags {"LightMode" = "ForwardBase"}
-            
+                        
             CGPROGRAM
             #pragma vertex vert
-            #pragma fragment frag
-            #pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap novertexlight
-            
+            #pragma fragment frag            
             #include "UnityCG.cginc"
-            #include "UnityLightingCommon.cginc"
-            #include "Lighting.cginc"
-            #include "AutoLight.cginc"
 
             uniform float3 _PointLightColor;
             uniform float3 _PointLightPosition;
@@ -78,9 +72,7 @@ Shader "Unlit/WaterShader"
                 
                 o.worldVertex = worldVertex;
                 o.worldNormal = worldNormal;
-                
-                TRANSFER_SHADOW(o);
-
+               
                 return o;
             }
             
@@ -110,49 +102,10 @@ Shader "Unlit/WaterShader"
                 // Combine Phong illumination model components
                 float4 returnColor = float4(0.0f, 0.0f, 0.0f, 0.0f);
                 returnColor.rgb = amb.rgb + dif.rgb + spe.rgb;
-                fixed shadow = SHADOW_ATTENUATION(v);
-                returnColor.rgb *= shadow;
                 returnColor.a = _Transparency;
                 
                 return returnColor;
             }
-            ENDCG
-        }
-        
-        Pass
-        {
-            Tags {"LightMode" = "ShadowCaster"} // renders the depth of the waves into the shadow
-            
-            CGPROGRAM
-            
-            #pragma vertex vert
-            #pragma fragment frag
-            #pragma multi_compile_ShadowCaster
-            #include "UnityCG.cginc"
-            
-            struct appdata{
-                float4 vertex : POSITION;
-                float3 normal : NORMAL;
-                float4 texcoord : TEXCOORD0;
-            };
-            
-            struct v2f
-            {
-                V2F_SHADOW_CASTER;
-            };
-            
-            v2f vert(appdata v)
-            {
-                v2f o;
-                TRANSFER_SHADOW_CASTER_NORMALOFFSET(o) //create shadow
-                return o;
-            }
-            
-            float4 frag(v2f v) : SV_Target
-            {
-                SHADOW_CASTER_FRAGMENT(v)
-            }
-            
             ENDCG
         }
     }

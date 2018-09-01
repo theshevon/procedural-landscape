@@ -1,5 +1,5 @@
 ﻿// Original code for Procedural Terrain Generation using Diamond Square 
-// Algorithm dwritten by Ather Omar:
+// Algorithm written by Ather Omar:
 // (https://www.youtube.com/watch?v=1HV8GbFnCik&t=915s)
 //
 // Adapted and modified for COMP30019 Project 01 by Shevon Mendis - 868551
@@ -150,14 +150,14 @@ public class LandScript : MonoBehaviour{
             UpdateMinAndMaxHeight(vertices[i].y);
         }
 
-        // ensure that at least a quarter of the land generated will be below water
-        float quarterHeight = GetTotalHeightOfLand()*0.25f;
-        if (minY > -quarterHeight){
-            float heightToMove = -(minY + quarterHeight);
+        // ensure that at least a third of the land generated will be below water
+        float threshold = GetTotalHeightOfLand()*0.33f;
+        if (minY > -threshold){
+            float heightToMove = -(minY + threshold);
             OffsetVertices(vertices, heightToMove);
         }
-        else if (maxY < quarterHeight){
-            float heightToMove = minY - quarterHeight;
+        else if (maxY < threshold){
+            float heightToMove = minY - threshold;
             OffsetVertices(vertices, heightToMove);
         }
 

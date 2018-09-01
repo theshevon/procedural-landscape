@@ -3,8 +3,9 @@
   <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Shaders/LandShader.shader">
     <Files>
       <File FileName="../../../Desktop/COMP30019/Workshops/Lab3_sln/Assets/CubeShaderBlend.shader" Line="21" Column="4" />
-      <File FileName="Assets/Shaders/LandShader.shader" Line="93" Column="17" />
-      <File FileName="Assets/Shaders/WaterShader.shader" Line="60" Column="46" />
+      <File FileName="Assets/Shaders/LandShader.shader" Line="32" Column="30" />
+      <File FileName="Assets/Shaders/WaterShader.shader" Line="15" Column="9" />
+      <File FileName="Assets/Shaders/OldLandShader.shader" Line="45" Column="51" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />

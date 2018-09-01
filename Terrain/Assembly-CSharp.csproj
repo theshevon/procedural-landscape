@@ -66,9 +66,7 @@
     <Compile Include="Assets\Scripts\PointLight.cs" />
     <Compile Include="Assets\Scripts\WaterScript.cs" />
     <None Include="Assets\Shaders\WaterShader.shader" />
-    <None Include="Assets\Shaders\OldWaterShader.shader" />
     <None Include="Assets\Shaders\LandShader.shader" />
-    <None Include="Assets\Shaders\OldLandShader.shader" />
     <Reference Include="UnityEditor.StandardEvents">
       <HintPath>/Users/Mendis/Unity/COMP30019-Project-01/Terrain/Library/ScriptAssemblies/UnityEditor.StandardEvents.dll</HintPath>
     </Reference>
