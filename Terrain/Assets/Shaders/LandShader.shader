@@ -7,6 +7,7 @@
         _Color ("Color", Color) = (1,1,1,1)
         _MainTex ("Main Texture", 2D) = "white" {}
         _BumpTex ("Bump Texture", 2D) = "bump" {}
+        _BlendFactor ("Blend Factor", range(0,1)) = 0.5
 
     }
     SubShader
@@ -24,7 +25,8 @@
             uniform float3 _PointLightColor;
             uniform float3 _PointLightPosition;
             uniform sampler2D _MainTex;
-            uniform sampler2D _BumpTex;            
+            uniform sampler2D _BumpTex; 
+            uniform float _BlendFactor;           
 
             struct appdata
             {
@@ -37,9 +39,8 @@
 
             struct v2f
             {
-                float4 pos : SV_POSITION;
+                float4 vertex : SV_POSITION;
                 float4 color : COLOR;
-                float3 normal : NORMAL;
                 float2 uv_main : TEXCOORD0;
                 float2 uv_bump : TEXCOORD1;
                 float4 worldVertex : TEXCOORD2;
@@ -52,11 +53,13 @@
                 v2f o;
                 
                 // Transform vertex in world coordinates to camera coordinates
-                o.pos = UnityObjectToClipPos(v.vertex);
+                o.vertex = UnityObjectToClipPos(v.vertex);
                 o.color = v.color;
                 
                 o.uv_main = v.uv_main;
                 o.uv_bump = v.uv_bump;
+                
+                //float3 normal = UnpackNormal(tex2D(_BumpTex, v.uv_bump));
                 
                 // Convert Vertex position and corresponding normal into world coords.
                 float4 worldVertex = mul(unity_ObjectToWorld, v.vertex);
@@ -72,7 +75,7 @@
             {
                 float3 interpolatedNormal = normalize(v.worldNormal);
                 
-                v.color = tex2D(_MainTex, v.uv_main);
+                v.color = (tex2D(_MainTex, v.uv_main) * _BlendFactor) + (v.color * (1.0f - _BlendFactor));
                 
                 // Calculate ambient RGB intensities
                 float Ka = 1;
@@ -93,7 +96,7 @@
                 float3 R = normalize((2 * LdotN * interpolatedNormal) - L);
                 
                 //float3 spe = fAtt * _PointLightColor.rgb * Ks * pow(saturate(dot(V, R)), specN);
-
+                // as the land would not be glossy, disregard the specular component
                 // Combine Phong illumination model components
                 float4 returnColor = (0.0f, 0.0f, 0.0f, 0.0f);
                 returnColor.rgb += amb.rgb + dif.rgb ; //+ spe.rgb;

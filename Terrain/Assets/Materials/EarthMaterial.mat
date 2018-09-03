@@ -69,6 +69,7 @@ Material:
     m_Floats:
     - _Amount: 0.1
     - _Amplitude: 2.73
+    - _BlendFactor: 0.75
     - _BlendFct: 0
     - _BumpScale: 1
     - _Cutoff: 0.5

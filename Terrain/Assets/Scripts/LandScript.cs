@@ -145,26 +145,30 @@ public class LandScript : MonoBehaviour{
         }
 
         // update height details about the terrain
-        for (int i = 0; i < noOfDivisions; i++)
-        {
-            UpdateMinAndMaxHeight(vertices[i].y);
-        }
+        UpdateMinAndMaxHeight(vertices);
 
         // ensure that at least a third of the land generated will be below water
         float threshold = GetTotalHeightOfLand()*0.33f;
-        if (minY > -threshold){
-            float heightToMove = -(minY + threshold);
+        if (minY > -threshold || maxY < threshold){
+            Debug.Log("Adjusting height");
+            float heightToMove;
+            if (minY > -threshold)
+            {
+                heightToMove = -(minY + threshold);
+            }else{
+                heightToMove = minY - threshold;
+            }
             OffsetVertices(vertices, heightToMove);
-        }
-        else if (maxY < threshold){
-            float heightToMove = minY - threshold;
-            OffsetVertices(vertices, heightToMove);
+            minY += heightToMove;
+            maxY += heightToMove;
         }
 
-        // set colors
-        for (int i=0; i < colors.Length; i++){
-            colors[i] = vertices[i].y < 0 ? new Color32(255, 214, 159, 1) : new Color32(105, 74, 16, 1);
-        }
+        //// set colors
+        //for (int i=0; i < colors.Length; i++){
+        //    colors[i] = vertices[i].y < 0 ? new Color32(255, 214, 159, 1) : new Color32(105, 74, 16, 1);
+        //}
+
+        //Set colors         for (int i = 0; i < noOfDivisions+1; i++){             for (int j = 0; j < noOfDivisions+1; j++)             {                 index = i * (noOfDivisions + 1) + j;                  float vertexHeight = vertices[index].y;                 if (vertexHeight > maximumHeight - GetTotalHeightOfLand() / 12){                     colors[index] = new Color32(255, 255, 255, 1);                 }                 else if (vertexHeight > maximumHeight - GetTotalHeightOfLand() / 9){                     if (Random.Range(0, 10) >= 5)                     {                         colors[index] = new Color32(255, 255, 255, 1);                     }                     else                     {                         colors[index] = new Color32(105, 74, 16, 1);                     }                 }                 else if (vertexHeight > maximumHeight - GetTotalHeightOfLand() / 6){                     colors[index] = new Color32(105, 74, 16, 1);                 }                 else if (vertexHeight > maximumHeight - GetTotalHeightOfLand() / 4){                     if (Random.Range(0, 10) >= 5){                         colors[index] = new Color32(105, 74, 16, 1);                     } else{                         colors[index] = new Color32(0, 153, 76, 1);                     }                 }                 else if (vertexHeight > maximumHeight - GetTotalHeightOfLand() / 2) {                      colors[index] = new Color32(0, 153, 76, 1);                 }else if (vertexHeight > 0){                     if (Random.Range(0, 10) >= 5)                     {                         colors[index] = new Color32(0, 153, 76, 1);                     }                     else                     {                         colors[index] = new Color32(255, 214, 159, 1);                     }                 }else{                     colors[index] = new Color32(255, 214, 159, 1);                 }             }         } 
 
         // store the arrays in their mesh counter-parts
         mesh.vertices = vertices;
@@ -203,13 +207,21 @@ public class LandScript : MonoBehaviour{
 
 
     /// updates the values of the maximum and minimum vertex heights generated
-    private void UpdateMinAndMaxHeight(float y)
+    private void UpdateMinAndMaxHeight(Vector3[] vertices)
     {
-        if (y < minY){
-           minY = y;
-        }
-        else if (y >maxY){
-           maxY = y;
+        for (int i = 0; i < vertices.Length; i++){
+
+            float y = vertices[i].y;
+
+            if (y < minY)
+            {
+                minY = y;
+            }
+            else if (y > maxY)
+            {
+                maxY = y;
+            }
+
         }
     }
 

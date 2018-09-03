@@ -8,11 +8,13 @@ Shader "Unlit/WaterShader"
         _PointLightPosition ("Point Light Position", Vector) = (0.0, 0.0, 0.0)
         
         // water properties
+        _MainTex("Main Texture", 2D) = "white" {}
         _Transparency("Transparency", Range(0.0, 1)) = 0.5
         _Amplitude("Amplitude", Range(0,5)) = 0.82
         _Frequency("Frequency", Range(0,5)) = 2.73
         _Speed("Speed", Range(0,5)) = 2.24
         _Glossiness("Glossiness", Range(0,500)) = 500
+        _BlendFactor("Blend Factor", Range(0,1)) = 0.75
     }
     
     SubShader
@@ -33,25 +35,31 @@ Shader "Unlit/WaterShader"
 
             uniform float3 _PointLightColor;
             uniform float3 _PointLightPosition;
+            uniform sampler2D  _MainTex;
+            uniform float _BlendFactor;
             float _Transparency;
             float _Speed;
             float _Amplitude;
             float _Frequency;
             float _Glossiness;
+            
 
             struct appdata
             {
                 float4 vertex : POSITION;
                 float4 normal : NORMAL;
                 float4 color : COLOR;
+                float2 uv_main : TEXCOORD0;
+
             };
 
             struct v2f
             {
-                float4 pos : SV_POSITION;
+                float4 vertex : SV_POSITION;
                 float4 color : COLOR;
-                float4 worldVertex : TEXCOORD0;
-                float3 worldNormal : TEXCOORD1;
+                float2 uv_main : TEXCOORD0;
+                float4 worldVertex : TEXCOORD1;
+                float3 worldNormal : TEXCOORD2;
             };
             
             v2f vert(appdata v)
@@ -67,8 +75,10 @@ Shader "Unlit/WaterShader"
                 float3 worldNormal = normalize(mul(transpose((float3x3)unity_WorldToObject), v.normal.xyz));
                 
                 // Transform vertex in world coordinates to camera coordinates
-                o.pos = UnityObjectToClipPos(v.vertex);
+                o.vertex = UnityObjectToClipPos(v.vertex);
                 o.color = v.color;
+                
+                o.uv_main = v.uv_main;
                 
                 o.worldVertex = worldVertex;
                 o.worldNormal = worldNormal;
@@ -80,6 +90,8 @@ Shader "Unlit/WaterShader"
             {
                 float3 interpolatedNormal = normalize(v.worldNormal);
                 
+                v.color = (tex2D(_MainTex, v.uv_main) * _BlendFactor) + (v.color * (1.0f - _BlendFactor));
+                                                
                 // Calculate ambient RGB intensities
                 float Ka = 1;
                 float3 amb = v.color.rgb * UNITY_LIGHTMODEL_AMBIENT.rgb * Ka;
