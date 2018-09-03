@@ -1,9 +1,21 @@
-﻿Shader "Unlit/LandShader"
+﻿// Shader script to colour and light the vertices of mesh representing land
+// for COMP30019 Project 01.
+// Code used in the application of Phong's illumination model attributed to 
+// Alexandre Mutel (SharpDX), Jeremy Nicholson (UoM), Chris Ewin (UoM) & 
+// Alex Zable (UoM).
+//
+// Written by Brendan Leung & Shevon Mendis, September 2018.
+
+Shader "Unlit/LandShader"
 {
     Properties
-    {
+    {   
+        
+        // light-related properties
         _PointLightColor ("Point Light Color", Color) = (0, 0, 0)
         _PointLightPosition ("Point Light Position", Vector) = (0.0, 0.0, 0.0)
+        
+        // land surface-related properties
         _Color ("Color", Color) = (1,1,1,1)
         _MainTex ("Main Texture", 2D) = "white" {}
         _BumpTex ("Bump Texture", 2D) = "bump" {}
@@ -12,16 +24,18 @@
     }
     SubShader
     {
+        
+        Tags {"RenderType"="Opaque"}
+        
         Pass
-        {
-            Tags {"RenderType" = "Opaque" "LightMode" = "ForwardBase"}
-            
+        {              
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
 
             #include "UnityCG.cginc"
             
+            // declarations
             uniform float3 _PointLightColor;
             uniform float3 _PointLightPosition;
             uniform sampler2D _MainTex;
@@ -31,37 +45,33 @@
             struct appdata
             {
                 float4 vertex : POSITION;
-                float4 normal : NORMAL;
+                float3 normal : NORMAL;
                 float4 color : COLOR;
-                float2 uv_main : TEXCOORD0;
-                float2 uv_bump : TEXCOORD1;
+                float2 uv_mainTex : TEXCOORD0;
+                float2 uv_bumpTex : TEXCOORD1;
             };
 
             struct v2f
             {
                 float4 vertex : SV_POSITION;
                 float4 color : COLOR;
-                float2 uv_main : TEXCOORD0;
-                float2 uv_bump : TEXCOORD1;
-                float4 worldVertex : TEXCOORD2;
-                float3 worldNormal : TEXCOORD3;
-            };
-            
+                fixed3 normal : NORMAL;
+                float2 uv_mainTex : TEXCOORD0;
+                float4 worldVertex : TEXCOORD1;
+                float3 worldNormal : TEXCOORD2;
+            };  
           
             v2f vert(appdata v)
             {
                 v2f o;
                 
-                // Transform vertex in world coordinates to camera coordinates
+                // transform vertex in world coordinates to camera coordinates
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 o.color = v.color;
                 
-                o.uv_main = v.uv_main;
-                o.uv_bump = v.uv_bump;
-                
-                //float3 normal = UnpackNormal(tex2D(_BumpTex, v.uv_bump));
-                
-                // Convert Vertex position and corresponding normal into world coords.
+                o.uv_mainTex = v.uv_mainTex;
+                                   
+                // Convert Vertex position and corresponding normal into world coordinates
                 float4 worldVertex = mul(unity_ObjectToWorld, v.vertex);
                 float3 worldNormal = normalize(mul(transpose((float3x3)unity_WorldToObject), v.normal.xyz));
                 
@@ -73,15 +83,16 @@
             
             fixed4 frag(v2f v) : SV_Target
             {
+                // blend texture and vertex colours
+                v.color = (tex2D(_MainTex, v.uv_mainTex) * _BlendFactor) + (v.color * (1.0f - _BlendFactor));
+                                
                 float3 interpolatedNormal = normalize(v.worldNormal);
-                
-                v.color = (tex2D(_MainTex, v.uv_main) * _BlendFactor) + (v.color * (1.0f - _BlendFactor));
-                
-                // Calculate ambient RGB intensities
+                                
+                // calculate ambient RGB intensities
                 float Ka = 1;
                 float3 amb = v.color.rgb * UNITY_LIGHTMODEL_AMBIENT.rgb * Ka;
 
-                // Calculate diffuse RBG reflections, we save the results of L.N because we will use it again
+                // calculate diffuse RBG reflections, we save the results of L.N because we will use it again
                 // (when calculating the reflected ray in our specular component)
                 float fAtt = 1;
                 float Kd = 1;
@@ -89,17 +100,10 @@
                 float LdotN = dot(L, v.worldNormal.xyz);
                 float3 dif = fAtt * _PointLightColor.rgb * Kd * v.color.rgb * saturate(LdotN);
                 
-                // Calculate specular reflections
-                float Ks = 1;
-                //float specN = _Glossiness; // Values>>1 give tighter highlights
-                float3 V = normalize(_WorldSpaceCameraPos - v.worldVertex.xyz);
-                float3 R = normalize((2 * LdotN * interpolatedNormal) - L);
-                
-                //float3 spe = fAtt * _PointLightColor.rgb * Ks * pow(saturate(dot(V, R)), specN);
-                // as the land would not be glossy, disregard the specular component
-                // Combine Phong illumination model components
+                // combine Phong illumination model components - as the land would not be glossy, the 
+                // specular component was disregarded
                 float4 returnColor = (0.0f, 0.0f, 0.0f, 0.0f);
-                returnColor.rgb += amb.rgb + dif.rgb ; //+ spe.rgb;
+                returnColor.rgb += amb.rgb + dif.rgb;
                 returnColor.a = v.color.a;
 
                 return returnColor;

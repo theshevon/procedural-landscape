@@ -1,4 +1,11 @@
-﻿
+﻿// Shader script to colour and light the vertices of mesh representing water 
+// surface for COMP30019 Project 01.
+// Code used in the application of Phong's illumination model attributed to 
+// Alexandre Mutel (SharpDX), Jeremy Nicholson (UoM), Chris Ewin (UoM) & 
+// Alex Zable (UoM).
+//
+// Written by Brendan Leung & Shevon Mendis, September 2018.
+
 Shader "Unlit/WaterShader"
 {
     Properties
@@ -13,13 +20,15 @@ Shader "Unlit/WaterShader"
         _Amplitude("Amplitude", Range(0,5)) = 0.82
         _Frequency("Frequency", Range(0,5)) = 2.73
         _Speed("Speed", Range(0,5)) = 2.24
-        _Glossiness("Glossiness", Range(0,500)) = 500
+        _Glossiness("Glossiness", Range(0,500)) = 250
         _BlendFactor("Blend Factor", Range(0,1)) = 0.75
     }
     
     SubShader
     {
         
+        // since water will be transparent, ensure that it is rendered
+        // after every other object
         Tags {"Queue" = "Transparent" "RenderType"="Transparent" }
         
         ZWrite Off
@@ -27,12 +36,12 @@ Shader "Unlit/WaterShader"
         
         Pass
         {
-                        
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag            
             #include "UnityCG.cginc"
-
+            
+            // declarations
             uniform float3 _PointLightColor;
             uniform float3 _PointLightPosition;
             uniform sampler2D  _MainTex;
@@ -43,21 +52,19 @@ Shader "Unlit/WaterShader"
             float _Frequency;
             float _Glossiness;
             
-
             struct appdata
             {
                 float4 vertex : POSITION;
                 float4 normal : NORMAL;
                 float4 color : COLOR;
-                float2 uv_main : TEXCOORD0;
-
+                float2 uv : TEXCOORD0;
             };
 
             struct v2f
             {
                 float4 vertex : SV_POSITION;
                 float4 color : COLOR;
-                float2 uv_main : TEXCOORD0;
+                float2 uv : TEXCOORD0;
                 float4 worldVertex : TEXCOORD1;
                 float3 worldNormal : TEXCOORD2;
             };
@@ -69,34 +76,36 @@ Shader "Unlit/WaterShader"
                 // offset the vertex to get wave animation
                 v.vertex.y += sin(_Time.y * _Speed + v.vertex.x * _Frequency) * _Amplitude +
                 cos(_Time.y * _Speed + v.vertex.x * _Frequency*2) * _Amplitude;
-
-                // Convert Vertex position and corresponding normal into world coords.
+                                
+                // convert Vertex position and corresponding normal into world coordinates
                 float4 worldVertex = mul(unity_ObjectToWorld, v.vertex);
                 float3 worldNormal = normalize(mul(transpose((float3x3)unity_WorldToObject), v.normal.xyz));
                 
-                // Transform vertex in world coordinates to camera coordinates
+                // transform vertex in world coordinates to camera coordinates
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 o.color = v.color;
-                
-                o.uv_main = v.uv_main;
-                
+                  
                 o.worldVertex = worldVertex;
                 o.worldNormal = worldNormal;
+                
+                o.uv = v.uv;
                
                 return o;
             }
             
             fixed4 frag(v2f v) : SV_Target
             {
-                float3 interpolatedNormal = normalize(v.worldNormal);
                 
-                v.color = (tex2D(_MainTex, v.uv_main) * _BlendFactor) + (v.color * (1.0f - _BlendFactor));
-                                                
+                // blend texture and vertex colours
+                v.color = (tex2D(_MainTex, v.uv) * _BlendFactor) + (v.color * (1.0f - _BlendFactor));
+                
+                float3 interpolatedNormal = normalize(v.worldNormal);
+                                                                                
                 // Calculate ambient RGB intensities
                 float Ka = 1;
                 float3 amb = v.color.rgb * UNITY_LIGHTMODEL_AMBIENT.rgb * Ka;
 
-                // Calculate diffuse RBG reflections, we save the results of L.N because we will use it again
+                // calculate diffuse RBG reflections, we save the results of L.N because we will use it again
                 // (when calculating the reflected ray in our specular component)
                 float fAtt = 1;
                 float Kd = 1;
@@ -104,14 +113,14 @@ Shader "Unlit/WaterShader"
                 float LdotN = dot(L, v.worldNormal.xyz);
                 float3 dif = fAtt * _PointLightColor.rgb * Kd * v.color.rgb * saturate(LdotN);
                 
-                // Calculate specular reflections
+                // calculate specular reflections
                 float Ks = 1;
-                float specN = _Glossiness; // Values>>1 give tighter highlights
+                float specN = _Glossiness; 
                 float3 V = normalize(_WorldSpaceCameraPos - v.worldVertex.xyz);
                 float3 R = normalize((2 * LdotN * interpolatedNormal) - L);
                 float3 spe = fAtt * _PointLightColor.rgb * Ks * pow(saturate(dot(V, R)), specN);
 
-                // Combine Phong illumination model components
+                // combine Phong illumination model components
                 float4 returnColor = float4(0.0f, 0.0f, 0.0f, 0.0f);
                 returnColor.rgb = amb.rgb + dif.rgb + spe.rgb;
                 returnColor.a = _Transparency;

@@ -1,34 +1,38 @@
-﻿// Original code for Procedural Terrain Generation using Diamond Square 
-// Algorithm written by Ather Omar:
+﻿// Script to procedurally generate a terrain for COMP30019 Project 01.
+//
+// Procedural land Generation using Diamond Square Algorithm referenced from
+// code written by Ather Omar:
 // (https://www.youtube.com/watch?v=1HV8GbFnCik&t=915s)
 //
-// Adapted and modified for COMP30019 Project 01 by Shevon Mendis - 868551
+// Adapted and modified by Shevon Mendis, September 2018.
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class LandScript : MonoBehaviour{
 
     public Material material;
     public PointLight pointLight;
 
-    // the terrain must have width and height of the order 2^n + 1
-    // hence both the size of the terrain and no of divisions must be of the 
+    // the land must have width and height of the order 2^n + 1
+    // hence both the size of the land and no of divisions must be of the 
     // order 2^n
-    private const float sizeOfTerrain = 64; 
+    private const float sizeOfland = 64; 
     private const int noOfDivisions = 128; 
 
-    private const float maximumHeight = 20;
-    private float maxY = 20;
-    private float minY = -20;
+    private const float maximumHeight = 16;
+    private float maxY = -float.MaxValue;
+    private float minY = float.MaxValue;
 
     MeshRenderer landRenderer;
 
     void Start()
     {
-        MeshFilter terrainMesh = gameObject.AddComponent<MeshFilter>();
-        terrainMesh.mesh = GenerateTerrain();
+        MeshFilter landMesh = gameObject.AddComponent<MeshFilter>();
+        landMesh.mesh = GenerateLand();
 
         landRenderer = gameObject.AddComponent<MeshRenderer>();
         landRenderer.material = material;
@@ -44,11 +48,15 @@ public class LandScript : MonoBehaviour{
         landRenderer.material.SetVector("_PointLightPosition", this.pointLight.GetWorldPosition());
     }
 
-    private Mesh GenerateTerrain()
+    /// <summary>Generates a mesh for the land.</summary>
+    /// <returns>The land mesh.</returns>
+    private Mesh GenerateLand()
     {
 
-        Mesh mesh = new Mesh();
-        mesh.name = "Terrain";
+        Mesh mesh = new Mesh
+        {
+            name = "Land"
+        };
 
         // the size of the vertices array is (noOfDivisions + 1)^2 to satisfy
         // the (2^n + 1) height-width condition needed to run the diamond square algorithm
@@ -58,48 +66,40 @@ public class LandScript : MonoBehaviour{
         Color[] colors = new Color[vertices.Length];
         int[] triangles = new int[noOfDivisions * noOfDivisions * 6];
 
-        float sizeOfDivision = sizeOfTerrain / noOfDivisions;
-        int index;
+        // start by creating a plane of the required size
+        MakePlane(vertices, UVs, triangles, sizeOfland, noOfDivisions);
 
-        // Initially, create a plane
-        for (int i = 0; i < noOfDivisions + 1; i++)
-        {
-            for (int j = 0; j < noOfDivisions + 1; j++)
-            {
+        // vary the heights of the vertices
+        VaryVertexHeights(vertices);
 
-                index = i * (noOfDivisions + 1) + j;
+        // update vertex height details about the land
+        UpdateMinAndMaxHeight(vertices);
+        
+        // ensure that at least a third of the land generated will be below water
+        float threshold = -GetHeightOfLand() / 3.0f;
+        float heightToMove = threshold - minY;
+        OffsetVertices(vertices, heightToMove);
+        minY += heightToMove;
+        maxY += heightToMove;
 
-                // set vertex
-                vertices[index] = new Vector3(-(sizeOfTerrain * 0.5f) + (j * sizeOfDivision), 0.0f, (sizeOfTerrain * 0.5f) - (i * sizeOfDivision));
+        SetColors(colors, vertices);
 
-                // set uv
-                UVs[index] = new Vector2((float)i / noOfDivisions,
-                                         (float)j / noOfDivisions);
+        // store the arrays in their mesh counter-parts
+        mesh.vertices = vertices;
+        mesh.colors = colors;
+        mesh.uv = UVs;
+        mesh.triangles = triangles;
 
-                // set colour
-                colors[index] = Color.green;
-            }
-        }
+        mesh.RecalculateBounds();
+        mesh.RecalculateNormals();
 
-        // make triangles out of the vertices
-        index = 0;
-        for (int i = 0; i < noOfDivisions; i++)
-        {
-            for (int j = 0; j < noOfDivisions; j++)
-            {
+        return mesh;
+    }
 
-                // left side triangle of sqaure unit in plane
-                triangles[index++] = i * (noOfDivisions + 1) + j;
-                triangles[index++] = (i + 1) * (noOfDivisions + 1) + j + 1;
-                triangles[index++] = (i + 1) * (noOfDivisions + 1) + j;
-
-                // right side triangle of square in plane
-                triangles[index++] = i * (noOfDivisions + 1) + j;
-                triangles[index++] = i * (noOfDivisions + 1) + j + 1;
-                triangles[index++] = (i + 1) * (noOfDivisions + 1) + j + 1;
-            }
-        }
-
+    /// <summary> Varies the y values of the vertices that make up the land </summary>
+    /// <param name="vertices">Vertices array.</param>
+    private void VaryVertexHeights(Vector3[] vertices)
+    {
         // set initial values for the corners of the plane
         vertices[0].y = Random.Range(0, maximumHeight);
         vertices[noOfDivisions].y = Random.Range(-maximumHeight, 0);
@@ -117,7 +117,7 @@ public class LandScript : MonoBehaviour{
         int squareSize = noOfDivisions;
         float height = maximumHeight;
 
-        // run the diamond square algorithm for each diamond and square in the array
+        // run the diamond square algorithm on the array
         for (int i = 0; i < noOfRuns; i++)
         {
 
@@ -143,46 +143,60 @@ public class LandScript : MonoBehaviour{
             // vary the height offset 
             height *= 0.5f;
         }
+    }
 
-        // update height details about the terrain
-        UpdateMinAndMaxHeight(vertices);
+    /// <summary>Makes a plane out of vertices.</summary>
+    /// <param name="vertices">Vertices array.</param>
+    /// <param name="UVs">UVs array.</param>
+    /// <param name="triangles">Triangles array.</param>
+    private void MakePlane(Vector3[] vertices, Vector2[] UVs, int[] triangles, float size, int nDivisions){
 
-        // ensure that at least a third of the land generated will be below water
-        float threshold = GetTotalHeightOfLand()*0.33f;
-        if (minY > -threshold || maxY < threshold){
-            Debug.Log("Adjusting height");
-            float heightToMove;
-            if (minY > -threshold)
+        float sizeOfDivision = size / nDivisions;
+        int index;
+
+        // create a plane
+        for (int i = 0; i < nDivisions + 1; i++)
+        {
+            for (int j = 0; j < nDivisions + 1; j++)
             {
-                heightToMove = -(minY + threshold);
-            }else{
-                heightToMove = minY - threshold;
+
+                index = i * (nDivisions + 1) + j;
+
+                // set vertex
+                vertices[index] = new Vector3(-(size * 0.5f) + (j * sizeOfDivision), 0.0f, (size * 0.5f) - (i * sizeOfDivision));
+
+                // set uv
+                UVs[index] = new Vector2((float)i / nDivisions, (float)j / nDivisions);
             }
-            OffsetVertices(vertices, heightToMove);
-            minY += heightToMove;
-            maxY += heightToMove;
         }
 
-        //// set colors
-        //for (int i=0; i < colors.Length; i++){
-        //    colors[i] = vertices[i].y < 0 ? new Color32(255, 214, 159, 1) : new Color32(105, 74, 16, 1);
-        //}
+        // make triangles out of the vertices
+        index = 0;
+        for (int i = 0; i < nDivisions; i++)
+        {
+            for (int j = 0; j < nDivisions; j++)
+            {
 
-        //Set colors         for (int i = 0; i < noOfDivisions+1; i++){             for (int j = 0; j < noOfDivisions+1; j++)             {                 index = i * (noOfDivisions + 1) + j;                  float vertexHeight = vertices[index].y;                 if (vertexHeight > maximumHeight - GetTotalHeightOfLand() / 12){                     colors[index] = new Color32(255, 255, 255, 1);                 }                 else if (vertexHeight > maximumHeight - GetTotalHeightOfLand() / 9){                     if (Random.Range(0, 10) >= 5)                     {                         colors[index] = new Color32(255, 255, 255, 1);                     }                     else                     {                         colors[index] = new Color32(105, 74, 16, 1);                     }                 }                 else if (vertexHeight > maximumHeight - GetTotalHeightOfLand() / 6){                     colors[index] = new Color32(105, 74, 16, 1);                 }                 else if (vertexHeight > maximumHeight - GetTotalHeightOfLand() / 4){                     if (Random.Range(0, 10) >= 5){                         colors[index] = new Color32(105, 74, 16, 1);                     } else{                         colors[index] = new Color32(0, 153, 76, 1);                     }                 }                 else if (vertexHeight > maximumHeight - GetTotalHeightOfLand() / 2) {                      colors[index] = new Color32(0, 153, 76, 1);                 }else if (vertexHeight > 0){                     if (Random.Range(0, 10) >= 5)                     {                         colors[index] = new Color32(0, 153, 76, 1);                     }                     else                     {                         colors[index] = new Color32(255, 214, 159, 1);                     }                 }else{                     colors[index] = new Color32(255, 214, 159, 1);                 }             }         } 
+                // left side triangle of a sqaure unit in plane
+                triangles[index++] = i * (nDivisions + 1) + j;
+                triangles[index++] = (i + 1) * (nDivisions + 1) + j + 1;
+                triangles[index++] = (i + 1) * (nDivisions + 1) + j;
 
-        // store the arrays in their mesh counter-parts
-        mesh.vertices = vertices;
-        mesh.colors = colors;
-        mesh.uv = UVs;
-        mesh.triangles = triangles;
-
-        mesh.RecalculateBounds();
-        mesh.RecalculateNormals();
-
-        return mesh;
+                // right side triangle of a square in plane
+                triangles[index++] = i * (nDivisions + 1) + j;
+                triangles[index++] = i * (nDivisions + 1) + j + 1;
+                triangles[index++] = (i + 1) * (nDivisions + 1) + j + 1;
+            }
+        }
 
     }
 
+    /// <summary> Runs the diamond square algorithm on an array of vertices. </summary>
+    /// <param name="vertices">Vertices array.</param>
+    /// <param name="row">Row number.</param>
+    /// <param name="col">Column number.</param>
+    /// <param name="squareSize">Size of square.</param>
+    /// <param name="offset">Height offset.</param>
     private void RunDiamondSquare(Vector3[] vertices, int row, int col, int squareSize, float offset)
     {
 
@@ -205,8 +219,8 @@ public class LandScript : MonoBehaviour{
         vertices[bottomLeft + halfSize].y = (vertices[midPoint].y + vertices[bottomLeft].y + vertices[bottomRight].y) / 3 + Random.Range(-offset, offset);
     }
 
-
-    /// updates the values of the maximum and minimum vertex heights generated
+    /// <summary> Updates the values of the maximum and minimum vertex heights generated </summary>
+    /// <param name="vertices">Vertices array.</param>
     private void UpdateMinAndMaxHeight(Vector3[] vertices)
     {
         for (int i = 0; i < vertices.Length; i++){
@@ -217,23 +231,81 @@ public class LandScript : MonoBehaviour{
             {
                 minY = y;
             }
-            else if (y > maxY)
+
+            if (y > maxY)
             {
                 maxY = y;
             }
-
         }
     }
 
-    /// returns the actual height of the terrain generated
-    private float GetTotalHeightOfLand(){
+    /// <summary> Returns the actual height of the land generated </summary>
+    /// <returns>The height of land.</returns>
+    private float GetHeightOfLand(){
         return maxY - minY;
     }
 
-    /// moves all the vertices vertically up or down as required
+    /// <summary> Moves all the vertices vertically up or down as required.</summary>
+    /// <param name="vertices">Vertices array.</param>
+    /// <param name="height">Height to offset by.</param>
     private void OffsetVertices(Vector3[] vertices, float height){
         for (int i = 0; i < vertices.Length; i++){
             vertices[i] += new Vector3(0, height, 0);
         }
+    }
+
+    /// <summary> Sets the colors for each vertex. </summary>
+    /// <param name="colors">Colors array.</param>
+    /// <param name="vertices">Vertices array.</param>
+    private void SetColors(Color[] colors, Vector3[] vertices){
+
+        for (int i = 0; i < vertices.Length; i++){
+
+            float vertexHeight = vertices[i].y;
+            float heightAboveLand = maximumHeight; 
+
+            // highest vertices will be white (to resemble snow)
+            if (vertexHeight > 0.8f * heightAboveLand)
+            {
+                colors[i] = new Color32(255, 255, 255, 1);
+            }
+
+            // vary vertex colours from white to brown
+            else if (vertexHeight > 0.7f * heightAboveLand)
+            {
+                colors[i] = Random.Range(0, 10) >= 5 ? (Color)new Color32(255, 255, 255, 1) : (Color)new Color32(26, 13, 0, 1);
+            }
+
+            // upper-mid vertices will be brown to show Earth
+            else if (vertexHeight > 0.5f * heightAboveLand)
+            {
+                colors[i] = new Color32(26, 13, 0, 1);
+            }
+
+            // vary vertex colours from brown to green
+            else if (vertexHeight > 0.4f * heightAboveLand)
+            {
+                colors[i] = Random.Range(0, 10) >= 5 ? (Color)new Color32(26, 13, 0, 1) : (Color)new Color32(0, 153, 76, 1);
+            }
+
+            // most of the vertices will be green to show vegetation
+            else if (vertexHeight > 0.1f * heightAboveLand)
+            {
+                colors[i] = new Color32(0, 153, 76, 1);
+            }
+
+            // vary from green to beige
+            else if (vertexHeight > 0)
+            {
+                colors[i] = Random.Range(0, 10) >= 5 ? (Color)new Color32(0, 153, 76, 1) : (Color)new Color32(255, 214, 159, 1);
+            }
+
+            // vertices below water will be sand coloured (beige)
+            else
+            {
+                colors[i] = new Color32(255, 214, 159, 1);
+            }
+        }
+
     }
 }

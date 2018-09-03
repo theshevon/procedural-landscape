@@ -1,7 +1,7 @@
-﻿// Program to create a flat plane to be used as water surface for COMP30019
-// Project 01
+﻿// Script to generate a flat plane that will represent the ocean surface for 
+// COMP30019 Project 01.
 //
-// Written by Shevon Mendis - 868551
+// Written by Shevon Mendis, September 2018.
 
 using System.Collections;
 using System.Collections.Generic;
@@ -14,7 +14,7 @@ public class WaterScript : MonoBehaviour
 
     private const float sizeOfTerrain = 64;
     private const int noOfDivisions = 128;
-
+    
     MeshRenderer waterRenderer;
 
     void Start()
