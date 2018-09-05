@@ -1,7 +1,7 @@
 ﻿// Shader script to colour and light the vertices of mesh representing water 
 // surface for COMP30019 Project 01.
-// Code used in the application of Phong's illumination model attributed to 
-// Alexandre Mutel (SharpDX), Jeremy Nicholson (UoM), Chris Ewin (UoM) & 
+// The code used in the application of Phong's illumination model is attributed  
+// to Alexandre Mutel (SharpDX), Jeremy Nicholson (UoM), Chris Ewin (UoM) & 
 // Alex Zable (UoM).
 //
 // Written by Brendan Leung & Shevon Mendis, September 2018.
@@ -38,7 +38,7 @@ Shader "Unlit/WaterShader"
         {
             CGPROGRAM
             #pragma vertex vert
-            #pragma fragment frag            
+            #pragma fragment frag 
             #include "UnityCG.cginc"
             
             // declarations
@@ -55,7 +55,8 @@ Shader "Unlit/WaterShader"
             struct appdata
             {
                 float4 vertex : POSITION;
-                float4 normal : NORMAL;
+                float3 normal : NORMAL;
+                float4 tangent : TANGENT;
                 float4 color : COLOR;
                 float2 uv : TEXCOORD0;
             };
@@ -74,9 +75,9 @@ Shader "Unlit/WaterShader"
                 v2f o;
                 
                 // offset the vertex to get wave animation
-                v.vertex.y += sin(_Time.y * _Speed + v.vertex.x * _Frequency) * _Amplitude +
-                cos(_Time.y * _Speed + v.vertex.x * _Frequency*2) * _Amplitude;
-                                
+                v.vertex.y = sin(_Time.y * _Speed + v.vertex.x * _Frequency) * _Amplitude +
+                cos(_Time.y * _Speed + v.vertex.x * _Frequency * 2) * _Amplitude;
+
                 // convert Vertex position and corresponding normal into world coordinates
                 float4 worldVertex = mul(unity_ObjectToWorld, v.vertex);
                 float3 worldNormal = normalize(mul(transpose((float3x3)unity_WorldToObject), v.normal.xyz));
@@ -127,6 +128,7 @@ Shader "Unlit/WaterShader"
                 
                 return returnColor;
             }
+            
             ENDCG
         }
     }

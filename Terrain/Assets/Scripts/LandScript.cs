@@ -4,7 +4,7 @@
 // code written by Ather Omar:
 // (https://www.youtube.com/watch?v=1HV8GbFnCik&t=915s)
 //
-// Adapted and modified by Shevon Mendis, September 2018.
+// Written by Shevon Mendis, September 2018.
 
 using System;
 using System.Collections;
@@ -31,6 +31,10 @@ public class LandScript : MonoBehaviour{
 
     void Start()
     {
+
+        // set target frame rate 
+        Application.targetFrameRate = 100;
+
         MeshFilter landMesh = gameObject.AddComponent<MeshFilter>();
         landMesh.mesh = GenerateLand();
 

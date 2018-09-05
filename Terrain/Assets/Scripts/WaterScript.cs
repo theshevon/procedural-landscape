@@ -16,10 +16,11 @@ public class WaterScript : MonoBehaviour
     private const int noOfDivisions = 128;
     
     MeshRenderer waterRenderer;
+    MeshFilter terrainMesh;
 
     void Start()
     {
-        MeshFilter terrainMesh = gameObject.AddComponent<MeshFilter>();
+        terrainMesh = gameObject.AddComponent<MeshFilter>();
         terrainMesh.mesh = GenerateWater();
 
         waterRenderer = gameObject.AddComponent<MeshRenderer>();

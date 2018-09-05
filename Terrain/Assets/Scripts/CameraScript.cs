@@ -1,4 +1,9 @@
-﻿using System.Collections;
+﻿// Script to control camera based on keyboard/ mouse input for COMP30019
+// Project 01.
+//
+// Written by Brendan Leung, September 2018.
+
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -16,12 +21,11 @@ public class CameraScript : MonoBehaviour {
     private float yPosition = 30.0f;
     private float xPosition = 0.0f;
 
-    private float sizeOfTerrain;
+    private const float sizeOfTerrain = 64;
 
     // Use this for initialization
     void Start () {
-        // get size of terrain from TerrainScript
-        sizeOfTerrain = 64;
+      
         // set initial camera rotation
         this.transform.localRotation = Quaternion.Euler(vertical, horizontal, 0.0f);
         // set initial camera position

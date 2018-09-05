@@ -1,12 +1,12 @@
 ﻿<Properties StartupConfiguration="{E1BAB358-ECE8-9022-EF6D-1460A4705FBE}|">
   <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="Unity.Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Shaders/LandShader.shader">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Shaders/WaterShader.shader">
     <Files>
       <File FileName="../../../Desktop/Backups Terrain/Shaders/OldLandShader.shader" Line="45" Column="24" />
-      <File FileName="Assets/Scripts/LandScript.cs" Line="282" Column="29" />
-      <File FileName="Assets/Scripts/WaterScript.cs" Line="26" Column="43" />
-      <File FileName="Assets/Shaders/WaterShader.shader" Line="79" Column="17" />
-      <File FileName="Assets/Shaders/LandShader.shader" Line="51" Column="1" />
+      <File FileName="Assets/Scripts/LandScript.cs" Line="6" Column="3" />
+      <File FileName="Assets/Scripts/WaterScript.cs" Line="38" Column="5" />
+      <File FileName="Assets/Shaders/WaterShader.shader" Line="101" Column="17" />
+      <File FileName="Assets/Scripts/CameraScript.cs" Line="20" Column="37" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />

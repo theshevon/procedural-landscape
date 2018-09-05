@@ -1,7 +1,7 @@
 ﻿// Shader script to colour and light the vertices of mesh representing land
 // for COMP30019 Project 01.
-// Code used in the application of Phong's illumination model attributed to 
-// Alexandre Mutel (SharpDX), Jeremy Nicholson (UoM), Chris Ewin (UoM) & 
+// The code used in the application of Phong's illumination model is attributed  
+// to Alexandre Mutel (SharpDX), Jeremy Nicholson (UoM), Chris Ewin (UoM) & 
 // Alex Zable (UoM).
 //
 // Written by Brendan Leung & Shevon Mendis, September 2018.
@@ -26,6 +26,7 @@ Shader "Unlit/LandShader"
     {
         
         Tags {"RenderType"="Opaque"}
+        LOD 200
         
         Pass
         {              
@@ -45,7 +46,7 @@ Shader "Unlit/LandShader"
             struct appdata
             {
                 float4 vertex : POSITION;
-                float3 normal : NORMAL;
+                float4 normal : NORMAL;
                 float4 color : COLOR;
                 float2 uv_mainTex : TEXCOORD0;
                 float2 uv_bumpTex : TEXCOORD1;
@@ -55,7 +56,6 @@ Shader "Unlit/LandShader"
             {
                 float4 vertex : SV_POSITION;
                 float4 color : COLOR;
-                fixed3 normal : NORMAL;
                 float2 uv_mainTex : TEXCOORD0;
                 float4 worldVertex : TEXCOORD1;
                 float3 worldNormal : TEXCOORD2;
