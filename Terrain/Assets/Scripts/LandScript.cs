@@ -31,10 +31,6 @@ public class LandScript : MonoBehaviour{
 
     void Start()
     {
-
-        // set target frame rate 
-        Application.targetFrameRate = 100;
-
         MeshFilter landMesh = gameObject.AddComponent<MeshFilter>();
         landMesh.mesh = GenerateLand();
 
