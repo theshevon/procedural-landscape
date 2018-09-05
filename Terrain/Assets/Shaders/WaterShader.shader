@@ -70,16 +70,43 @@ Shader "Unlit/WaterShader"
                 float3 worldNormal : TEXCOORD2;
             };
             
+            // calculate and return the new position of the vertex
+            float4 getNewPosition(float4 vertex)
+            {
+                // update the vertex position
+                vertex.y = sin(_Time.y * _Speed + vertex.x * _Frequency) * _Amplitude +
+                cos(_Time.y * _Speed + vertex.x * _Frequency * 2) * _Amplitude;
+                
+                return vertex;
+            }
+            
             v2f vert(appdata v)
             {
                 v2f o;
                 
+                // calculate the bitangent (vector perpendicular to normal and tangent)
+                float4 bitangent = (0,0,0,0);
+                bitangent.xyz = cross(v.normal, v.tangent);
+                
                 // offset the vertex to get wave animation
-                v.vertex.y = sin(_Time.y * _Speed + v.vertex.x * _Frequency) * _Amplitude +
-                cos(_Time.y * _Speed + v.vertex.x * _Frequency * 2) * _Amplitude;
+                v.vertex = getNewPosition(v.vertex);
 
                 // convert Vertex position and corresponding normal into world coordinates
                 float4 worldVertex = mul(unity_ObjectToWorld, v.vertex);
+    
+                float4 vertexAndTangent = getNewPosition(v.vertex + v.tangent * 0.01);
+                float4 vertexAndBitangent = getNewPosition(v.vertex + bitangent * 0.01);
+                
+                // get the new (approximated) tangent and bitangent
+                float4 newTangent = (vertexAndTangent - v.vertex); 
+                float4 newBitangent = (vertexAndBitangent - v.vertex);  
+                
+                // calculate the new (approximated) normal 
+                float4 newNormal = (0,0,0,0);
+                newNormal.xyz = cross(newTangent, newBitangent);
+                v.normal = newNormal;
+                
+                // convert nomarl into world coordinates
                 float3 worldNormal = normalize(mul(transpose((float3x3)unity_WorldToObject), v.normal.xyz));
                 
                 // transform vertex in world coordinates to camera coordinates

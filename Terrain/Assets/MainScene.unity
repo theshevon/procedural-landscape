@@ -397,7 +397,7 @@ GameObject:
   - component: {fileID: 1968999972}
   - component: {fileID: 1968999971}
   m_Layer: 0
-  m_Name: Sun
+  m_Name: Point Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
