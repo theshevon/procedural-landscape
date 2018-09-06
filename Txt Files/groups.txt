@@ -1,0 +1,17 @@
+COMP300019 - GRAPHICS AND INTERACTION - PROJECT 01 
+
+• Name: Shevon Mendis
+  Student No: 868551
+  Contribution: - Modeling of fractal landscape and ocean surface
+                - Shading model for ocean surface, inclusive of dynamic normal recalculation.
+
+• Name: Brendan Leung
+  Student No: 833995
+  Contribution: - Camera motion and controls
+		- Lighting based on the Phong illumination model
+
+• Name: Wenzhen Yue
+  Student No: 752632
+  Contribution: - Generation of sun and its motion
+		- Shading model for land surface
+ 
